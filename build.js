@@ -12,7 +12,7 @@ const indexHtmlPath = path.resolve(srcPath, 'index.html');
 const indexHtmlDistPath = path.resolve(distPath, 'index.html');
 const appJsDistPath = path.resolve(distPath, 'app.js');
 
-(async () => {
+async function build() {
   try {
     try {
       const stats = await fs.stat(distPath);
@@ -62,4 +62,6 @@ const appJsDistPath = path.resolve(distPath, 'app.js');
   } catch (err) {
     console.log(err.message);
   }
-})();
+}
+
+build();
