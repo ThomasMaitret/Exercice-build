@@ -28,26 +28,37 @@ const appJsDistPath = path.resolve(distPath, 'app.js');
       await fs.mkdir(distPath);
     }
 
+    // Delete dist directory
     await del(distPath);
     await fs.mkdir(distPath);
 
+    // Build app.js
     const dataHorloge = await fs.readFile(horlogeJsPath);
     await fs.appendFile(appJsDistPath, dataHorloge);
 
     const dataIndex = await fs.readFile(indexJsPath);
     await fs.appendFile(appJsDistPath, dataIndex);
 
-    const dataIndexHtml = await fs.readFile(indexHtmlPath);
-    await fs.appendFile(indexHtmlDistPath, dataIndexHtml);
-
-    // Change script tags
-
-    await fs.rename(
-      appJsDistPath,
-      path.resolve(distPath, `app.${md5(appJsDistPath)}.js`)
+    // Replace script tags
+    const dataIndexHtml = await fs.readFile(indexHtmlPath, 'utf8');
+    let newDataIndexHtml = dataIndexHtml.replace(
+      '<script src="./js/horloge.js"></script>',
+      '<script src="./app.js"></script>'
     );
+    newDataIndexHtml = newDataIndexHtml.replace(
+      '<script src="./js/index.js"></script>',
+      ''
+    );
+    await fs.appendFile(indexHtmlDistPath, newDataIndexHtml);
 
     // Uglify
+    const dataDistAppJs = await fs.readFile(appJsDistPath, 'utf8');
+    const newDataDistAppJs = UglifyJS.minify(dataDistAppJs);
+    await fs.writeFile(appJsDistPath, newDataDistAppJs.code);
+
+    // Rename with hash
+    const newAppJsDistPath = `app.${md5(appJsDistPath)}.js`;
+    await fs.rename(appJsDistPath, path.resolve(distPath, newAppJsDistPath));
   } catch (err) {
     console.log(err.message);
   }
